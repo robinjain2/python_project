@@ -10,7 +10,7 @@ local buildUrl="http://140.211.11.144:8080/job/Testing/${buildId}/consoleText"
 # Function to extract failed tests from build log
 extractFailedTests() {
     local buildLog="$1"
-    grep -oP 'test\.py.*?FAILED' <<< "$buildLog"
+    echo "$buildLog" | grep -oP 'test\.py.*?FAILED' | awk '{print $1}'
 }
  
 # Function to compare test results between two builds
