@@ -26,10 +26,13 @@ diffTestResults() {
     local firstFailedTests=$(extractFailedTests "$firstBuildLog")
     local secondFailedTests=$(extractFailedTests "$secondBuildLog")
     echo "Test cases failed in the first build but passed in the second build:"
-    comm -23 <(echo "$firstFailedTests" | sort) <(echo "$secondFailedTests" | sort)
+    echo "$firstFailedTests" | sort > first_failed_tests.txt
+    echo "$secondFailedTests" | sort > second_failed_tests.txt
+    comm -23 first_failed_tests.txt second_failed_tests.txt
     echo ""
     echo "Test cases failed in the second build but passed in the first build:"
-    comm -13 <(echo "$firstFailedTests" | sort) <(echo "$secondFailedTests" | sort)
+    comm -13 first_failed_tests.txt second_failed_tests.txt
+    rm first_failed_tests.txt second_failed_tests.txt
 }
  
 # Provide build IDs instead of log paths
