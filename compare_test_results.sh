@@ -2,18 +2,18 @@
  
 # Function to fetch build log from Jenkins
 fetchBuildLog() {
-    local buildId=$1
-local buildUrl="http://140.211.11.144:8080/job/Testing/${buildId}/console"
-    local response=$(curl -s "$buildUrl")
+    buildId=$1
+buildUrl="http://140.211.11.144:8080/job/Testing/${buildId}/console"
+    response=$(curl -s "$buildUrl")
     echo "$response"
 }
  
 # Function to extract failed tests from build log
 extractFailedTests() {
-    local buildLog="$1"
-    local failedTests=()
+    buildLog="$1"
+    failedTests=()
  
-    local inFailedSection=false
+    inFailedSection=false
     while IFS= read -r line; do
         if [[ $line == *FAILED* ]]; then
             inFailedSection=true
@@ -22,7 +22,7 @@ extractFailedTests() {
         fi
  
 if [[ $inFailedSection && $line == *"test.py"* ]]; then
-            local parts=($line)
+            parts=($line)
             failedTests+=("${parts[1]}")
         fi
     done <<< "$buildLog"
@@ -32,19 +32,19 @@ if [[ $inFailedSection && $line == *"test.py"* ]]; then
  
 # Function to compare test results between two builds
 diffTestResults() {
-    local firstBuildId=$1
-    local secondBuildId=$2
+    firstBuildId=$1
+    secondBuildId=$2
  
-    local firstBuildLog=$(fetchBuildLog "$firstBuildId")
-    local secondBuildLog=$(fetchBuildLog "$secondBuildId")
+    firstBuildLog=$(fetchBuildLog "$firstBuildId")
+    secondBuildLog=$(fetchBuildLog "$secondBuildId")
  
     if [[ -z $firstBuildLog || -z $secondBuildLog ]]; then
         echo "Failed to fetch build logs. Make sure the build IDs are correct."
         return
     fi
  
-    local firstFailedTests=$(extractFailedTests "$firstBuildLog")
-    local secondFailedTests=$(extractFailedTests "$secondBuildLog")
+    firstFailedTests=$(extractFailedTests "$firstBuildLog")
+    secondFailedTests=$(extractFailedTests "$secondBuildLog")
  
     echo "Test cases failed in the first build but passed in the second build:"
     for testCase in $firstFailedTests; do
