@@ -2,7 +2,7 @@
  
 # Function to fetch build log from Jenkins
 fetchBuildLog() {
-    local buildId=$1
+    local buildId="$1"
 local buildUrl="http://140.211.11.144:8080/job/Testing/${buildId}/consoleText"
     local response=$(curl -s "$buildUrl")
     echo "$response"
@@ -11,19 +11,13 @@ local buildUrl="http://140.211.11.144:8080/job/Testing/${buildId}/consoleText"
 # Function to extract failed tests from build log
 extractFailedTests() {
     local buildLog="$1"
-    local failedTests={}
-    local inFailedSection=false
+    local failedTests=()
  
-    while IFS= read -r line; do
-        if [[ $line == *FAILED* ]]; then
-            inFailedSection=true
-        elif [[ $line == *"[100%]"* || $line == *"passed"* ]]; then
-            inFailedSection=false
-        fi
- 
-if $inFailedSection && [[ $line == *"test.py"* ]]; then
-            local parts=($line)
-            failedTests+=("${parts[1]}")
+    # Extract failed test cases from the build log
+    while read -r line; do
+if [[ $line == *FAILED* && $line == *test.py* ]]; then
+            failedTest=$(echo "$line" | awk '{print $NF}') # Extract the failed test case name
+            failedTests+=("$failedTest")
         fi
     done <<< "$buildLog"
  
@@ -32,8 +26,8 @@ if $inFailedSection && [[ $line == *"test.py"* ]]; then
  
 # Function to compare test results between two builds
 diffTestResults() {
-    local firstBuildId=$1
-    local secondBuildId=$2
+    local firstBuildId="$1"
+    local secondBuildId="$2"
     local firstBuildLog=$(fetchBuildLog "$firstBuildId")
     local secondBuildLog=$(fetchBuildLog "$secondBuildId")
  
@@ -47,16 +41,16 @@ diffTestResults() {
  
     echo "Test cases failed in the first build but passed in the second build:"
     for testCase in ${firstFailedTests[@]}; do
-        if [[ ! " ${secondFailedTests[@]} " == *" ${testCase} "* ]]; then
-            echo "- ${testCase}"
+        if [[ ! " ${secondFailedTests[@]} " =~ " ${testCase} " ]]; then
+            echo "- $testCase"
         fi
     done
  
     echo ""
     echo "Test cases failed in the second build but passed in the first build:"
     for testCase in ${secondFailedTests[@]}; do
-        if [[ ! " ${firstFailedTests[@]} " == *" ${testCase} "* ]]; then
-            echo "- ${testCase}"
+        if [[ ! " ${firstFailedTests[@]} " =~ " ${testCase} " ]]; then
+            echo "- $testCase"
         fi
     done
 }
