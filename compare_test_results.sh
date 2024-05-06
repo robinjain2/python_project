@@ -10,7 +10,7 @@ local buildUrl="http://140.211.11.144:8080/job/Testing/${buildId}/consoleText"
 # Function to extract failed tests from build log
 extractFailedTests() {
     local buildLog="$1"
-    echo "$buildLog" | sed -n 's/.*FAILED \(.*\) - assert.*/\1/p'
+    echo "$buildLog" | grep -o 'FAILED .* - assert.*' | sed 's/FAILED //' | sed 's/ - assert.*//'
 }
  
 # Function to compare test results between two builds
