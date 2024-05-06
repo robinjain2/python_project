@@ -11,7 +11,7 @@ local buildUrl="http://140.211.11.144:8080/job/Testing/${buildId}/consoleText"
 # Function to extract failed tests from build log
 extractFailedTests() {
     local buildLog="$1"
-    local failedTests=()
+    local failedTests={}
     local inFailedSection=false
  
     while IFS= read -r line; do
