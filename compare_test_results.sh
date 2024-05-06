@@ -11,7 +11,7 @@ buildUrl="http://140.211.11.144:8080/job/Testing/${buildId}/console"
 # Function to extract failed tests from build log
 extractFailedTests() {
     buildLog="$1"
-    failedTests=()
+    failedTests={}
  
     inFailedSection=false
     while IFS= read -r line; do
