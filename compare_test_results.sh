@@ -13,7 +13,7 @@ diffTestResults() {
     local secondBuildId="$2"
     local firstBuildLog=$(fetchBuildLog "$firstBuildId")
     local secondBuildLog=$(fetchBuildLog "$secondBuildId")
-    if [[ -z $firstBuildLog || -z $secondBuildLog ]]; then
+    if [ -z "$firstBuildLog" ] || [ -z "$secondBuildLog" ]; then
         echo "Failed to fetch build logs. Make sure the build IDs are correct."
         return
     fi
