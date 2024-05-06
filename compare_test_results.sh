@@ -4,24 +4,13 @@
 fetchBuildLog() {
     local buildId="$1"
 local buildUrl="http://140.211.11.144:8080/job/Testing/${buildId}/consoleText"
-    local response=$(curl -s "$buildUrl")
-    echo "$response"
+    curl -s "$buildUrl"
 }
  
 # Function to extract failed tests from build log
 extractFailedTests() {
     local buildLog="$1"
-    local failedTests=()
- 
-    # Extract failed test cases from the build log
-    while read -r line; do
-if [[ $line == *FAILED* && $line == *test.py* ]]; then
-            failedTest=$(echo "$line" | awk '{print $NF}') # Extract the failed test case name
-            failedTests+=("$failedTest")
-        fi
-    done <<< "$buildLog"
- 
-    echo "${failedTests[@]}"
+    grep -oP 'test\.py.*?FAILED' <<< "$buildLog" | awk '{print $1}'
 }
  
 # Function to compare test results between two builds
@@ -40,19 +29,11 @@ diffTestResults() {
     local secondFailedTests=$(extractFailedTests "$secondBuildLog")
  
     echo "Test cases failed in the first build but passed in the second build:"
-    for testCase in ${firstFailedTests[@]}; do
-        if [[ ! " ${secondFailedTests[@]} " =~ " ${testCase} " ]]; then
-            echo "- $testCase"
-        fi
-    done
+    comm -23 <(sort <<< "$firstFailedTests") <(sort <<< "$secondFailedTests")
  
     echo ""
     echo "Test cases failed in the second build but passed in the first build:"
-    for testCase in ${secondFailedTests[@]}; do
-        if [[ ! " ${firstFailedTests[@]} " =~ " ${testCase} " ]]; then
-            echo "- $testCase"
-        fi
-    done
+    comm -13 <(sort <<< "$firstFailedTests") <(sort <<< "$secondFailedTests")
 }
  
 # Provide build IDs instead of log paths
