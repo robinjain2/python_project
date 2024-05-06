@@ -7,6 +7,12 @@ local buildUrl="http://140.211.11.144:8080/job/Testing/${buildId}/consoleText"
     curl -s "$buildUrl"
 }
  
+# Function to extract failed tests from build log
+extractFailedTests() {
+    local buildLog="$1"
+    grep -oP 'test\.py.*?FAILED' <<< "$buildLog"
+}
+ 
 # Function to compare test results between two builds
 diffTestResults() {
     local firstBuildId="$1"
@@ -17,10 +23,13 @@ diffTestResults() {
         echo "Failed to fetch build logs. Make sure the build IDs are correct."
         return
     fi
-    # Commented out for debugging
-    #local firstFailedTests=$(extractFailedTests "$firstBuildLog")
-    #local secondFailedTests=$(extractFailedTests "$secondBuildLog")
-    echo "Test results comparison will be performed here"
+    local firstFailedTests=$(extractFailedTests "$firstBuildLog")
+    local secondFailedTests=$(extractFailedTests "$secondBuildLog")
+    echo "Test cases failed in the first build but passed in the second build:"
+    comm -23 <(echo "$firstFailedTests" | sort) <(echo "$secondFailedTests" | sort)
+    echo ""
+    echo "Test cases failed in the second build but passed in the first build:"
+    comm -13 <(echo "$firstFailedTests" | sort) <(echo "$secondFailedTests" | sort)
 }
  
 # Provide build IDs instead of log paths
